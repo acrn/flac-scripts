@@ -2,29 +2,31 @@
 
 MP3DIR=/local/mp3 #TODO: make this an option
 
-for a in "${@}"
+for FLACFILE in "${@}"
 do
-    artist=$(metaflac --show-tag=ARTIST "$a" | sed 's/^.\+=//g')
-    album=$(metaflac --show-tag=ALBUM "$a" | sed 's/^.\+=//g')
-    title=$(metaflac --show-tag=TITLE "$a" | sed 's/^.\+=//g')
-    tracknumber=$(metaflac --show-tag=TRACKNUMBER "$a" \
-        | sed   -e 's/^.\+=//g' \
-                -e 's/\/.*$//g')
-    relativetargetdir=$(echo "$artist-$album" \
+    TAGS=$(metaflac --export-tags-to=- "$FLACFILE")
+    ARTIST=$(echo "$TAGS" | awk -F "=" 'toupper($1) ~ /ARTIST/{print $2;}')
+    ALBUM=$( echo "$TAGS" | awk -F "=" 'toupper($1) ~ /ALBUM/{ print $2;}')
+    TITLE=$( echo "$TAGS" | awk -F "=" 'toupper($1) ~ /TITLE/{ print $2;}')
+    TRACKNUMBER=$(echo "$TAGS" | awk -F "=" '
+        toupper($1) ~ /TRACKNUMBER/{
+            sub("/.*", "", $2);
+            print $2;}')
+    RELATIVETARGETDIR=$(echo "$ARTIST-$ALBUM" \
         | sed   -e 's/[ \t]/_/g' \
                 -e 's/./\l&/g')
-    relativetargetfile=$relativetargetdir/$(echo "$tracknumber-$title.mp3" \
+    RELATIVETARGETFILE=$RELATIVETARGETDIR/$(echo "$TRACKNUMBER-$TITLE.mp3" \
         | sed   -e 's/[ \t]/_/g' \
                 -e 's/./\l&/g')
-    targetdir="$MP3DIR/$relativetargetdir"
-    targetfile="$MP3DIR/$relativetargetfile"
-    mkdir -p "$targetdir"
-    flac -cd "$a" \
+    TARGETDIR="$MP3DIR/$RELATIVETARGETDIR"
+    TARGETFILE="$MP3DIR/$RELATIVETARGETFILE"
+    mkdir -p "$TARGETDIR"
+    flac -cd "$FLACFILE" \
         | lame -V0 \
-         --tt "$title" \
-         --tn "$tracknumber" \
-         --ta "$artist" \
-         --tl "$album" \
+         --tt "$TITLE" \
+         --tn "$TRACKNUMBER" \
+         --ta "$ARTIST" \
+         --tl "$ALBUM" \
          --add-id3v2 \
-         - "$targetfile"
+         - "$TARGETFILE"
 done

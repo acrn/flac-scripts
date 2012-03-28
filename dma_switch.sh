@@ -28,12 +28,7 @@ then
     exit -1
 fi
 
-DMA_PID=$(ps -ef \
-        | egrep "$DMA_EXEC$" \
-        | head -n 1 \
-        | sed   -e 's/^[^ ]*[ ]*//' \
-                -e 's/[ ]\+.*$//')
-
+DMA_PID=$(ps ax | awk -v "dmex=$DMA_EXEC" '($0 ~ dmex){print $1;exit;}')
 
 kill "$DMA_PID"
 sleep 5
