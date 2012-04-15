@@ -5,11 +5,11 @@ MP3DIR=/local/mp3 #TODO: make this an option
 for FLACFILE in "${@}"
 do
     TAGS=$(metaflac --export-tags-to=- "$FLACFILE")
-    ARTIST=$(echo "$TAGS" | awk -F "=" 'toupper($1) ~ /ARTIST/{print $2;}')
-    ALBUM=$( echo "$TAGS" | awk -F "=" 'toupper($1) ~ /ALBUM/{ print $2;}')
-    TITLE=$( echo "$TAGS" | awk -F "=" 'toupper($1) ~ /TITLE/{ print $2;}')
+    ARTIST=$(echo "$TAGS" | awk -F "=" 'toupper($1) ~ /^ARTIST=/{print $2;}')
+    ALBUM=$( echo "$TAGS" | awk -F "=" 'toupper($1) ~ /^ALBUM=/{ print $2;}')
+    TITLE=$( echo "$TAGS" | awk -F "=" 'toupper($1) ~ /^TITLE=/{ print $2;}')
     TRACKNUMBER=$(echo "$TAGS" | awk -F "=" '
-        toupper($1) ~ /TRACKNUMBER/{
+        toupper($1) ~ /^TRACKNUMBER=/{
             sub("/.*", "", $2);
             print $2;}')
     RELATIVETARGETDIR=$(echo "$ARTIST-$ALBUM" \
